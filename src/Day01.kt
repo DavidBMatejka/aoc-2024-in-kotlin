@@ -6,16 +6,13 @@ fun main() {
         val right = mutableListOf<Int>()
         for (line in input) {
             val splitted = line.split("   ")
-            left.add(splitted[0].trim().toInt())
-            right.add(splitted[1].trim().toInt())
+            left.add(splitted[0].toInt())
+            right.add(splitted[1].toInt())
         }
-        left.sort()
-        right.sort()
-        var sum = 0
-        for (i in left.indices) {
-            sum += abs(left[i] - right[i])
+
+       return left.sorted().zip(right.sorted()).fold(0) { sum, element  ->
+            sum + abs(element.first - element.second)
         }
-        return sum
     }
 
     fun part2(input: List<String>): Int {
@@ -23,20 +20,15 @@ fun main() {
         val rightMap = mutableMapOf<Int, Int>()
         for (line in input) {
             val splitted = line.split("   ")
-            left.add(splitted[0].trim().toInt())
+            left.add(splitted[0].toInt())
 
-            val r = splitted[1].trim().toInt()
-            if (r !in rightMap) {
-                rightMap[r] = 1
-            } else {
-                rightMap[r] = rightMap[r]!! + 1
-            }
+            val r = splitted[1].toInt()
+            rightMap[r] = rightMap.getOrDefault(r, 0) + 1
         }
-        var sum = 0
-        for (l in left) {
-            if (l in rightMap) sum += l * rightMap[l]!!
+
+        return left.fold(0) { sum, e ->
+            sum + e * rightMap.getOrDefault(e, 0)
         }
-        return sum
     }
 
     // Or read a large test input from the `src/Day01_test.txt` file:
