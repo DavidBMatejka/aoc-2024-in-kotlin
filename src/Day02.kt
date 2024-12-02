@@ -23,12 +23,8 @@ fun main() {
         var sum = 0
         for (line in input) {
             val numbers = line.split(" ").map {it.toInt()}
-            val first = numbers[0]
-            val second = numbers[1]
-            if (first < second) {
-                if(isAscSafe(numbers)) {
-                    sum++
-                }
+            if(isAscSafe(numbers)) {
+                sum++
             } else if(isDscSafe(numbers)) {
                 sum++
             }
@@ -49,18 +45,15 @@ fun main() {
                 continue
             }
 
-            var foundSafety = false
             for (i in numbers.indices) {
                 val oneRemoved = numbers.toMutableList()
                 oneRemoved.removeAt(i)
                 if(isAscSafe(oneRemoved)) {
                     sum++
-                    foundSafety = true
                     break
                 }
                 if(isDscSafe(oneRemoved)) {
                     sum++
-                    foundSafety = true
                     break
                 }
             }
