@@ -109,10 +109,10 @@ fun main() {
 		if (i - 1 < 0) return 0
 		if (j - 1 < 0) return 0
 
-		if ( grid[i + 1][j + 1] == 'M' && grid[i - 1][j - 1] == 'S'
+		if (grid[i + 1][j + 1] == 'M' && grid[i - 1][j - 1] == 'S'
 			|| grid[i + 1][j + 1] == 'S' && grid[i - 1][j - 1] == 'M'
 		) {
-			if ( grid[i + 1][j - 1] == 'M' && grid[i - 1][j + 1] == 'S'
+			if (grid[i + 1][j - 1] == 'M' && grid[i - 1][j + 1] == 'S'
 				|| grid[i + 1][j - 1] == 'S' && grid[i - 1][j + 1] == 'M'
 			) {
 				sum++
@@ -139,12 +139,12 @@ fun main() {
 		return sum
 	}
 
-	val testInput1= readInput("Day04_test1")
+	val testInput1 = readInput("Day04_test1")
 	check(part1(testInput1) == 18)
 	val testInput2 = readInput("Day04_test2")
 	check(part2(testInput2) == 9)
 
-    val input = readInput("Day04")
-    part1(input).println()
-    part2(input).println()
+	val input = readInput("Day04")
+	part1(input).println()
+	part2(input).println()
 }
