@@ -18,7 +18,7 @@ fun main() {
 
 
 	fun part1(input: List<String>): Int {
-		val list =
+		val blocks =
 			input.fold(mutableListOf(mutableListOf<String>())) { acc, line ->
 				if (line.isBlank()) {
 					acc.add(mutableListOf())
@@ -28,24 +28,20 @@ fun main() {
 				acc
 			}
 
-		val firstBlock = list[0]
-		val rules = mutableListOf<List<String>>()
-		for (line in firstBlock) {
-			rules.add(line.split("|"))
-		}
-		var sum = 0
-		for (update in list[1]) {
-			val splitted = update.split(",")
+		val rules = blocks[0].map { it.split("|") }.toMutableList()
+
+		return blocks[1].fold(0) { sum, page ->
+			val splitted = page.split(",")
 			if (checkIfCorrect(rules, splitted).first) {
 				val middle = splitted[splitted.size / 2]
-				sum += middle.toInt()
+				return@fold sum + middle.toInt()
 			}
+			sum
 		}
-		return sum
 	}
 
 	fun part2(input: List<String>): Int {
-		val list =
+		val blocks =
 			input.fold(mutableListOf(mutableListOf<String>())) { acc, line ->
 				if (line.isBlank()) {
 					acc.add(mutableListOf())
@@ -55,34 +51,27 @@ fun main() {
 				acc
 			}
 
-		val firstBlock = list[0]
-		val rules = mutableListOf<List<String>>()
-		for (line in firstBlock) {
-			rules.add(line.split("|"))
-		}
-		var sum = 0
-		for (update in list[1]) {
-			val splitted = update.split(",").toMutableList()
+		val rules = blocks[0].map { it.split("|") }.toMutableList()
 
-			if (checkIfCorrect(rules, splitted).first == true) {
-				continue
-			}
+		return blocks[1].fold(0) { sum, page ->
+			val splitted = page.split(",").toMutableList()
 
-			while (true) {
-				val (correct, left, right) = checkIfCorrect(rules, splitted)
-				if (!correct) {
-					val tmp = splitted[left]
-					splitted[left] = splitted[right]
-					splitted[right] = tmp
-
-				} else {
+			var reviewedPage = checkIfCorrect(rules, splitted)
+			while (reviewedPage.first == false) {
+				reviewedPage = checkIfCorrect(rules, splitted)
+				val (correct, left, right) = reviewedPage
+				
+				if (correct) {
 					val middle = splitted[splitted.size / 2]
-					sum += middle.toInt()
-					break
+					return@fold sum + middle.toInt()
 				}
+				
+				val tmp = splitted[left]
+				splitted[left] = splitted[right]
+				splitted[right] = tmp
 			}
+			sum
 		}
-		return sum
 	}
 
 	val testInput = readInput("Day05_test")
