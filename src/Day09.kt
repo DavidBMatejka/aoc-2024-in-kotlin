@@ -1,6 +1,6 @@
 fun main() {
 
-	data class FileBlock(var id: Int, var length: Int) {
+	data class DiskFile(var id: Int, var length: Int) {
 		fun shrinkBy(length: Int) {
 			this.length -= length
 		}
@@ -8,10 +8,10 @@ fun main() {
 			if (id == -1) return ".".repeat(length)
 			return "$id".repeat(length)
 		}
-		fun split(): List<FileBlock> {
-			val splitted = mutableListOf<FileBlock>()
+		fun split(): List<DiskFile> {
+			val splitted = mutableListOf<DiskFile>()
 			(0..<length).forEach { i ->
-				splitted.add(FileBlock(id, 1))
+				splitted.add(DiskFile(id, 1))
 			}
 			return splitted
 		}
@@ -56,7 +56,7 @@ fun main() {
 		return sum
 	}
 
-	fun tryToFit(list: MutableList<FileBlock>, fileBlock: FileBlock): MutableList<FileBlock> {
+	fun tryToFit(list: MutableList<DiskFile>, fileBlock: DiskFile): MutableList<DiskFile> {
 		val index = list.indexOf(fileBlock)
 		for (i in list.indices) {
 			if (index <= i) return list
@@ -83,25 +83,25 @@ fun main() {
 		val diskMap = input[0]
 
 		var id = 0
-		val freespaceRemoved = mutableListOf<FileBlock>()
+		val occuringIds = mutableListOf<DiskFile>()
 		var unpacked = buildList {
 			diskMap.forEachIndexed { i, c ->
 				if (i % 2 == 0) {
-					add(FileBlock(id, c.digitToInt()))
-					freespaceRemoved.add(FileBlock(id, c.digitToInt()))
+					add(DiskFile(id, c.digitToInt()))
+					occuringIds.add(DiskFile(id, c.digitToInt()))
 					id++
 				} else if (c.digitToInt() != 0){
-					add(FileBlock(-1, c.digitToInt()))
+					add(DiskFile(-1, c.digitToInt()))
 				}
 			}
 		}.toMutableList()
 
-		for (fileBlock in freespaceRemoved.reversed()) {
-			unpacked = tryToFit(unpacked, fileBlock)
+		for (wholeFile in occuringIds.reversed()) {
+			unpacked = tryToFit(unpacked, wholeFile)
 		}
 
 		var sum = 0L
-		val splitted = mutableListOf<FileBlock>()
+		val splitted = mutableListOf<DiskFile>()
 		unpacked.forEach {
 				splitted.addAll(it.split())
 		}
