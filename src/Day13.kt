@@ -6,7 +6,7 @@ fun main() {
 	data class Pos(val x: Int, val y: Int)
 	data class Machine(val A: Shift, val B: Shift, val prize: Pos)
 
-	fun parseInput(input: List<String>): List<Machine> {
+	fun parseInput(input: List<String>, ): List<Machine> {
 		val blocks =
 			input.fold(mutableListOf(mutableListOf<String>())) { acc, line ->
 				if (line.isBlank()) {
@@ -75,23 +75,67 @@ fun main() {
 
 		var sum = 0
 		machines.forEach { machine ->
-			sum += bfs(machine)
+			var tmp = bfs(machine)
+			if (tmp == Int.MAX_VALUE) tmp = 0
+//			tmp.println()
+			sum += tmp
 		}
 
 		return sum
 	}
 
 	fun part2(input: List<String>): Int {
+		val machines = parseInput(input,10000000000000)
+		var sum = 0
+		machines.forEachIndexed { nr, machine ->
+			if (nr == 250) {
+				println(machine)
+			}
+			var i = 0
+			var foundSolution = false
+			var k = 0
+			var min = Int.MAX_VALUE
+			while (true) {
+				val b = (machine.prize.x - i * machine.A.dx) / machine.B.dx
+				if (i * machine.A.dx > machine.prize.x) {
+					break
+				}
+				if (foundSolution) {
+					k++
+				}
+				if (k == 1000000) {
+					break
+				}
+				if ((i * machine.A.dy + b * machine.B.dy).toInt() == machine.prize.y) {
+					if ((i * machine.A.dx + b * machine.B.dx) == machine.prize.x ) {
+						val tmp = 3 * i + b
+						if (tmp < min) min = tmp.toInt()
+						foundSolution = true
+					}
+				}
+				i++
+			}
+//			"found for $machine".println()
+			if (min == Int.MAX_VALUE) {
+				min = 0
+			}
+//			min.println()
+			sum += min
+		}
 
-		return -1
+		return sum
 	}
 
-	val testInput = readInput("Day13_test")
+	val testInput = readInput("Day13_test2")
 	val input = readInput("Day13")
 
-	check(part1(testInput) == 480)
-	part1(input).println()
-//
-//	check(part2(readInput("Day12_test")) == -1)
-//	part2(input).println()
+
+	"part1:".println()
+//	part1(testInput).println()
+//	part1(input).println()
+//	println()
+
+	"part2:".println()
+//	part2(testInput).println()
+	part2(input).println()
 }
