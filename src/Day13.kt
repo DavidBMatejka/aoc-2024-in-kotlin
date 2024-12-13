@@ -35,15 +35,10 @@ fun main() {
 		return machines
 	}
 
-	fun calcFactors(machine: Machine): Pair<Long, Long> {
+	fun calcFactors(machine: Machine, extra: Long): Pair<Long, Long> {
 		/*
-
 		I	94 * a + 22 * b = 8400
 		II	34 * a + 67 * b = 5400
-	 I	machine.A.dx * i + machine.B.dx * j = machine.prize.x
-	 II	 machine.A.dy * i + machine.B.dy * j = machine.prize.y
-	 		I ax * a + bx * b = prize.x
-	 		I ay * a + by * b = prize.y
 
 		I 	94 * 34 * a + 22 * 34 * b = 8400 * 34
 		II	34 * 94 * a + 67 * 94 * b = 5400 * 94
@@ -51,12 +46,15 @@ fun main() {
 
 	II - I b = (5400 * 94 - 8400 * 34) / (67 * 94 - 22 * 34)
 					-> b = 40
-			b = (prize.y * ax - prize.x * ay) / (by * ax - bx * ay)
 
+		generally:
+		i ax * a + bx * b = prize.x
+		i ay * a + by * b = prize.y
+		ii - i b = (prize.y * ax - prize.x * ay) / (by * ax - bx * ay)
 		*/
 
-		val px = machine.prize.x
-		val py = machine.prize.y
+		val px = machine.prize.x + extra
+		val py = machine.prize.y + extra
 		val ax = machine.A.dx
 		val ay = machine.A.dy
 		val bx = machine.B.dx
@@ -80,14 +78,12 @@ fun main() {
 
 		var sum = 0L
 		machines.forEach { machine ->
-			val (a, b) = calcFactors(machine)
+			val (a, b) = calcFactors(machine, 0)
 			sum += 3 * a + b
 		}
 
 		return sum
 	}
-
-
 
 
 	fun part2(input: List<String>): Long {
@@ -96,7 +92,7 @@ fun main() {
 
 		machines.forEach { machine ->
 			machine.println()
-			val (a, b) = calcFactors(machine)
+			val (a, b) = calcFactors(machine, 10000000000000L)
 			sum += 3 * a + b
 		}
 
@@ -107,8 +103,6 @@ fun main() {
 	val input = readInput("Day13")
 
 
-	"part1:".println()
-//	part1(testInput).println()
 	check(part1(testInput) == 480L)
 	part1(input).println()
 
