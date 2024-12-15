@@ -1,3 +1,8 @@
+import org.jetbrains.kotlinx.kandy.dsl.plot
+import org.jetbrains.kotlinx.kandy.letsplot.export.save
+import org.jetbrains.kotlinx.kandy.letsplot.layers.points
+import org.jetbrains.kotlinx.kandy.letsplot.settings.Symbol
+
 fun main() {
 	data class Robot(var x: Int, var y: Int, val vx: Int, val vy: Int) {
 		fun move(steps: Int, w: Int, h: Int) {
@@ -29,7 +34,6 @@ fun main() {
 		}
 	}
 
-
 	fun parseInput(input: List<String>): MutableList<Robot> {
 		val robots = mutableListOf<Robot>()
 
@@ -46,12 +50,9 @@ fun main() {
 
 	fun part1(input: List<String>, w: Int, h: Int): Int {
 		val robots = parseInput(input)
-		val grid = MutableList(h) { MutableList(w) {"."} }
 		robots.forEach {
 			it.move(100, w, h)
-			grid[it.y][it.x] = "x"
 		}
-		grid.forEach { it.joinToString("").println() }
 
 		val quadrants = MutableList(4) { 0 }
 		robots.forEach { robot ->
@@ -64,9 +65,50 @@ fun main() {
 		}
 	}
 
-	fun part2(input: List<String>): Int {
+	fun createPNG(input: List<String>, step: Int, w: Int, h: Int) {
+		val robots = parseInput(input)
+		val xs = mutableListOf<Int>()
+		val ys = mutableListOf<Int>()
+		robots.forEach {
+			it.move(step, w, h)
+			xs.add(it.x)
+			ys.add(it.y)
+		}
+		plot {
+			points {
+				x(xs)
+				y(ys)
+				symbol = Symbol.SQUARE
+			}
+		}.save("${step}_tree.png")
+	}
 
-		return -1
+	fun part2(input: List<String>, w: Int, h: Int): Int {
+		val robots = parseInput(input)
+
+		val stepToFactor = mutableMapOf<Int, Int>()
+
+		(1..10000).forEach { i ->
+			robots.forEach {
+				it.move(1, w, h)
+			}
+
+			val quadrants = MutableList(4) { 0 }
+			robots.forEach { robot ->
+				val quad = robot.getQuadrant(w, h)
+				if (quad != -1) quadrants[quad] += 1
+			}
+
+			val factor = quadrants.fold(1) { acc, e ->
+				acc * e
+			}
+			stepToFactor[i] = factor
+		}
+
+		val erg = stepToFactor.minBy { it.value }
+		// just for fun also create a png to see the tree in all its glory
+		createPNG(input, erg.key, w, h)
+		return erg.key
 	}
 
 	val testInput = readInput("Day14_test")
@@ -74,6 +116,5 @@ fun main() {
 
 	check(part1(testInput, 11, 7) == 12)
 	part1(input, 101, 103).println()
-
-	part2(input).println()
+	part2(input, 101, 103).println()
 }
