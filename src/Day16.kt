@@ -12,18 +12,21 @@ fun main() {
 
 	data class Pos(val x: Int, val y: Int, val dir: Int) {
 		var cost = 0
+		var prev: Pos? = null
+
 		fun getNeighbours(grid: List<String>): List<Pos> {
 			val neighbours = mutableListOf<Pos>()
 
 			val (dx, dy) = dirs[dir]!!
 			val next = Pos(x + dx, y + dy, dir)
 			next.cost = cost + 1
+
 			if (grid[next.y][next.x] != '#') {
 				neighbours.add(next)
 			}
 
-			val rotateLeft = Pos( x, y, Math.floorMod(dir - 1, 4))
-			val rotateRight = Pos( x, y, Math.floorMod(dir + 1, 4))
+			val rotateLeft = Pos(x, y, Math.floorMod(dir - 1, 4))
+			val rotateRight = Pos(x, y, Math.floorMod(dir + 1, 4))
 			rotateRight.cost = cost + 1000
 			rotateLeft.cost = cost + 1000
 			neighbours.add(rotateRight)
@@ -33,29 +36,34 @@ fun main() {
 		}
 	}
 
-	fun bfs(grid: List<String>, start: Pos): Int {
+	data class Path(val pos: Pos, val cost: Int)
+
+	fun bfs(grid: List<String>, start: Pos): List<Path> {
 		val q = PriorityQueue<Pos>(compareBy { it.cost })
 		q.add(start)
 
 		val costSoFar = mutableMapOf<Pos, Int>().withDefault { Int.MAX_VALUE }
 		costSoFar[start] = 0
 
+		val possiblePaths = mutableListOf<Path>()
+
 		while (q.isNotEmpty()) {
 			val current = q.poll()
 
 			if (grid[current.y][current.x] == 'E') {
-				return current.cost
+				possiblePaths.add(Path(current, current.cost))
 			}
 
 			for (neighbour in current.getNeighbours(grid)) {
-				if (neighbour !in costSoFar || neighbour.cost < costSoFar[neighbour]!!) {
+				if (neighbour !in costSoFar || neighbour.cost <= costSoFar[neighbour]!!) {
+					neighbour.prev = current
 					costSoFar[neighbour] = neighbour.cost
 					q.add(neighbour)
 				}
 			}
 		}
 
-		return -1
+		return possiblePaths
 	}
 
 	fun parseInput(input: List<String>): Pair<List<String>, Pos> {
@@ -75,24 +83,36 @@ fun main() {
 
 	fun part1(input: List<String>): Int {
 		val (grid, start) = parseInput(input)
-
-		val erg = bfs(grid, start)
-		erg.println()
-		return erg
+		return bfs(grid, start).minBy { it.cost }.cost
 	}
 
 	fun part2(input: List<String>): Int {
+		val (grid, start) = parseInput(input)
+		val paths = bfs(grid, start)
 
-		return -1
+		val filteredByMin = paths.filter{
+			it.cost == paths.minBy { it.cost }.cost
+		}
+
+		val set = mutableSetOf<Pos>()
+		for (path in filteredByMin) {
+			var current: Pos? = path.pos
+			while (current != null) {
+				set.add(Pos(current.x, current.y, 0))
+				current = current.prev
+			}
+		}
+
+		return set.size
 	}
 
-	val testInput = readInput("Day16_test")
 	val input = readInput("Day16")
 
-	check(part1(testInput) == 7036)
-	check(part1(readInput(("Day16_test2"))) == 11048)
+	check(part1(readInput("Day16_test")) == 7036)
+	check(part1(readInput("Day16_test2")) == 11048)
 	part1(input).println()
 
-	check(part2(testInput) == -1)
+	check(part2(readInput("Day16_test")) == 45)
+	check(part2(readInput("Day16_test2")) == 64)
 	part2(input).println()
 }
