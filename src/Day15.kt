@@ -11,16 +11,17 @@ fun main() {
 	fun MutableList<MutableList<Char>>.execute(move: Char, pos: Position): Position {
 		val (dx, dy) = dirs[move]!!
 
-		fun findFreeSpace(move: Char, pos: Position): Position {
+		fun findFreeSpace(pos: Position): Position {
 			val current = Position(pos.x, pos.y)
 			var currentChar = this[current.y][current.x]
 			while (currentChar != '.') {
 				current.x += dx
 				current.y += dy
 				currentChar = this[current.y][current.x]
-				if (currentChar == '#') {
-					return pos
+				when (currentChar) {
+					'#' -> { return pos }
 				}
+
 			}
 			return current
 		}
@@ -38,7 +39,7 @@ fun main() {
 			return Position(current.x + dx, current.y + dy)
 		}
 
-		val freeSpacePosition = findFreeSpace(move, pos)
+		val freeSpacePosition = findFreeSpace(pos)
 		if (freeSpacePosition == pos) {
 			return pos
 		}
@@ -76,7 +77,7 @@ fun main() {
 	fun getStartingPosition(grid: MutableList<MutableList<Char>>): Position {
 		grid.forEachIndexed { y, line ->
 			val x = line.indexOf('@')
-			if (x != -1) return Position(y, x)
+			if (x != -1) return Position(x, y)
 		}
 		return Position(-1, -1)
 	}
@@ -92,7 +93,56 @@ fun main() {
 		return grid.calcGPS()
 	}
 
+
+	fun MutableList<MutableList<Char>>.expand(): MutableList<MutableList<Char>> {
+		val expanded = mutableListOf<MutableList<Char>>()
+		this.forEach { line ->
+			val tmp = mutableListOf<Char>()
+			line.forEach { c ->
+				when (c) {
+					'#' -> {
+						tmp.add('#')
+						tmp.add('#')
+					}
+					'O' -> {
+						tmp.add('[')
+						tmp.add(']')
+					}
+					'.' -> {
+						tmp.add('.')
+						tmp.add('.')
+					}
+					'@' -> {
+						tmp.add('@')
+						tmp.add('.')
+					}
+				}
+			}
+			expanded.add(tmp)
+		}
+
+		return expanded
+	}
+
+
 	fun part2(input: List<String>): Int {
+		val (grid, moves) = parseInput(input)
+		val expandedGrid = grid.expand()
+		expandedGrid.forEach { it.joinToString("").println() }
+
+		var pos = getStartingPosition(expandedGrid)
+
+		pos = expandedGrid.execute('<', pos)
+		pos = expandedGrid.execute('<', pos)
+		pos = expandedGrid.execute('<', pos)
+		pos = expandedGrid.execute('<', pos)
+		pos = expandedGrid.execute('<', pos)
+		pos = expandedGrid.execute('<', pos)
+		pos = expandedGrid.execute('v', pos)
+		expandedGrid.forEach { it.joinToString("").println() }
+		for (move in moves) {
+//			pos = grid.execute(move, pos)
+		}
 
 		return -1
 	}
@@ -104,7 +154,7 @@ fun main() {
 	check(part1(testInput) == 10092L)
 	part1(input).println()
 
-	check(part2(testInput) == -1)
-	part2(input).println()
+	part2(readInput("Day15_test_small2")).println()
+//	check(part2(testInput) == 9021)
+//	part2(input).println()
 }
-
