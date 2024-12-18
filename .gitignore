@@ -4,5 +4,5 @@
 build
 src/**/*.txt
 local.properties
-Day00.kt
+Day0.kt
 /lets-plot-images/
