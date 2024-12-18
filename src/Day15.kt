@@ -141,19 +141,7 @@ fun main() {
 		var sum = 0L
 		this.forEachIndexed { y, line ->
 			line.forEachIndexed { x, c ->
-				if (c == 'O') {
-					sum += 100 * y + x
-				}
-			}
-		}
-		return sum
-	}
-
-	fun MutableList<MutableList<Char>>.calcGPS2(): Long {
-		var sum = 0L
-		this.forEachIndexed { y, line ->
-			line.forEachIndexed { x, c ->
-				if (c == '[') {
+				if (c == 'O' || c == '[') {
 					sum += 100 * y + x
 				}
 			}
@@ -238,7 +226,7 @@ fun main() {
 			pos = expandedGrid.execute(move, pos, inPart2 = true)
 		}
 
-		return expandedGrid.calcGPS2()
+		return expandedGrid.calcGPS()
 	}
 
 	val testInput = readInput("Day15_test")
