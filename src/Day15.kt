@@ -12,40 +12,8 @@ fun main() {
 	fun MutableList<MutableList<Char>>.execute(
 		move: Char,
 		pos: Position,
-		inPart2: Boolean = false,
 	): Position {
 		val (dx, dy) = dirs[move]!!
-
-		fun findFreeSpace(pos: Position): Position {
-			val current = Position(pos.x, pos.y)
-			var currentChar = this[current.y][current.x]
-			while (currentChar != '.') {
-				current.x += dx
-				current.y += dy
-				currentChar = this[current.y][current.x]
-				when (currentChar) {
-					'#' -> {
-						return pos
-					}
-				}
-
-			}
-			return current
-		}
-
-		fun walkBackAndMoveTo(target: Position): Position {
-			val current = Position(target.x, target.y)
-			var currentChar = this[target.y][target.x]
-			while (currentChar != '@') {
-				this[current.y][current.x] =
-					this[current.y - dy][current.x - dx]
-				current.x -= dx
-				current.y -= dy
-				currentChar = this[current.y][current.x]
-			}
-			this[current.y][current.x] = '.'
-			return Position(current.x + dx, current.y + dy)
-		}
 
 		fun getElementsToPushVertical(pos: Position): Set<GridElement> {
 			val gridElements = mutableSetOf<GridElement>()
@@ -55,24 +23,53 @@ fun main() {
 				'@' -> {
 					gridElements.add(GridElement(pos.x, pos.y, '@'))
 				}
+
 				'#' -> {
 					return setOf(GridElement(-1, -1, '#'))
 				}
+
 				'.' -> {
 					return emptySet()
 				}
+
+				'O' -> {
+					gridElements.add(GridElement(pos.x, pos.y, 'O'))
+				}
+
 				'[' -> {
 					gridElements.add(GridElement(pos.x, pos.y, '['))
 					gridElements.add(GridElement(pos.x + 1, pos.y, ']'))
-					gridElements.addAll(getElementsToPushVertical(Position(pos.x + 1, pos.y + dy)))
+					gridElements.addAll(
+						getElementsToPushVertical(
+							Position(
+								pos.x + 1,
+								pos.y + dy
+							)
+						)
+					)
 				}
+
 				']' -> {
 					gridElements.add(GridElement(pos.x, pos.y, ']'))
 					gridElements.add(GridElement(pos.x - 1, pos.y, '['))
-					gridElements.addAll(getElementsToPushVertical(Position(pos.x - 1, pos.y + dy)))
+					gridElements.addAll(
+						getElementsToPushVertical(
+							Position(
+								pos.x - 1,
+								pos.y + dy
+							)
+						)
+					)
 				}
 			}
-			gridElements.addAll(getElementsToPushVertical(Position(pos.x, pos.y + dy)))
+			gridElements.addAll(
+				getElementsToPushVertical(
+					Position(
+						pos.x,
+						pos.y + dy
+					)
+				)
+			)
 
 			return gridElements
 		}
@@ -85,56 +82,64 @@ fun main() {
 				'#' -> {
 					return setOf(GridElement(-1, -1, '#'))
 				}
+
 				'.' -> {
 					return emptySet()
 				}
+
 				else -> {
-					gridElements.add(GridElement(pos.x, pos.y, this[pos.y][pos.x]))
-					gridElements.addAll(getElementsToPushHorizontal(Position(pos.x + dx, pos.y)))
+					gridElements.add(
+						GridElement(
+							pos.x,
+							pos.y,
+							this[pos.y][pos.x]
+						)
+					)
+					gridElements.addAll(
+						getElementsToPushHorizontal(
+							Position(
+								pos.x + dx,
+								pos.y
+							)
+						)
+					)
 				}
 			}
 
 			return gridElements
 		}
 
-		if (inPart2) {
-			if (move == '^' || move == 'v') {
-				val elementsToPush = getElementsToPushVertical(pos)
-				var newPos = pos
-				if (elementsToPush.none { it.char == '#' }) {
-					elementsToPush.forEach {
-						this[it.y][it.x] = '.'
-					}
-					elementsToPush.forEach {
-						if (it.char == '@') {
-							newPos = Position(it.x, it.y + dy)
-						}
-						this[it.y + dy][it.x] = it.char
-					}
+		if (move == '^' || move == 'v') {
+			val elementsToPush = getElementsToPushVertical(pos)
+			var newPos = pos
+			if (elementsToPush.none { it.char == '#' }) {
+				elementsToPush.forEach {
+					this[it.y][it.x] = '.'
 				}
-				return newPos
-			} else if (move == '>' || move == '<') {
-				val elementsToPush = getElementsToPushHorizontal(pos)
-				var newPos = pos
-				if (elementsToPush.none { it.char == '#' }) {
-					elementsToPush.forEach {
-						this[it.y][it.x] = '.'
+				elementsToPush.forEach {
+					if (it.char == '@') {
+						newPos = Position(it.x, it.y + dy)
 					}
-					elementsToPush.forEach {
-						if (it.char == '@') {
-							newPos = Position(it.x + dx, it.y)
-						}
-						this[it.y][it.x + dx] = it.char
-					}
+					this[it.y + dy][it.x] = it.char
 				}
-				return newPos
+			}
+			return newPos
+		}
+
+		val elementsToPush = getElementsToPushHorizontal(pos)
+		var newPos = pos
+		if (elementsToPush.none { it.char == '#' }) {
+			elementsToPush.forEach {
+				this[it.y][it.x] = '.'
+			}
+			elementsToPush.forEach {
+				if (it.char == '@') {
+					newPos = Position(it.x + dx, it.y)
+				}
+				this[it.y][it.x + dx] = it.char
 			}
 		}
-		val freeSpacePosition = findFreeSpace(pos)
-		if (freeSpacePosition == pos) {
-			return pos
-		}
-		return walkBackAndMoveTo(freeSpacePosition)
+		return newPos
 	}
 
 	fun MutableList<MutableList<Char>>.calcGPS(): Long {
@@ -171,18 +176,6 @@ fun main() {
 		return Position(-1, -1)
 	}
 
-	fun part1(input: List<String>): Long {
-		val (grid, moves) = parseInput(input)
-		var pos = getStartingPosition(grid)
-
-		for (move in moves) {
-			pos = grid.execute(move, pos)
-		}
-
-		return grid.calcGPS()
-	}
-
-
 	fun MutableList<MutableList<Char>>.expand(): MutableList<MutableList<Char>> {
 		val expanded = mutableListOf<MutableList<Char>>()
 		this.forEach { line ->
@@ -216,6 +209,16 @@ fun main() {
 		return expanded
 	}
 
+	fun part1(input: List<String>): Long {
+		val (grid, moves) = parseInput(input)
+		var pos = getStartingPosition(grid)
+
+		for (move in moves) {
+			pos = grid.execute(move, pos)
+		}
+
+		return grid.calcGPS()
+	}
 
 	fun part2(input: List<String>): Long {
 		val (grid, moves) = parseInput(input)
@@ -223,7 +226,7 @@ fun main() {
 
 		var pos = getStartingPosition(expandedGrid)
 		for (move in moves) {
-			pos = expandedGrid.execute(move, pos, inPart2 = true)
+			pos = expandedGrid.execute(move, pos)
 		}
 
 		return expandedGrid.calcGPS()
