@@ -48,11 +48,10 @@ fun main() {
 			}
 		}
 
-
 		return -1
 	}
 
-	fun part1(input: List<String>, size: Int, bytes: Int): Int {
+	fun parseInput(input: List<String>, size: Int, bytes: Int): MutableList<MutableList<Char>> {
 		val map = MutableList(size) { MutableList(size) { '.' } }
 
 		for (i in 0..bytes - 1) {
@@ -60,28 +59,43 @@ fun main() {
 			map[y][x] = '#'
 		}
 
+		return map
+	}
+
+	fun part1(input: List<String>, size: Int, bytes: Int): Int {
+		val map = parseInput(input, size, bytes)
 		return bfs(map)
 	}
 
-	fun part2(input: List<String>, size: Int, bytes: Int): String {
-		val map = MutableList(size) { MutableList(size) { '.' } }
+	fun binSearch(
+		input: List<String>,
+		size: Int,
+		low: Int,
+		high: Int
+	): Int {
+		val middle = (high + low) / 2
+		if (middle == low) return low - 1
 
-		for (i in 0..bytes - 1) {
+		val map = parseInput(input, size, middle)
+
+		var i = low
+		while (i < middle) {
 			val (x, y) = input[i].split(",").map { it.toInt() }
 			map[y][x] = '#'
-		}
-
-		var i = bytes
-		while (i < input.size) {
-			val (x, y) = input[i].split(",").map { it.toInt() }
-			map[y][x] = '#'
-			if (bfs(map) == -1) {
-				return "${x},${y}"
-			}
 			i++
 		}
 
-		return "error"
+		return if (bfs(map) == -1) {
+			binSearch(input, size, low, middle)
+		} else {
+			binSearch(input, size, middle + 1, high)
+		}
+	}
+
+
+	fun part2(input: List<String>, size: Int, bytes: Int): String {
+		val index = binSearch(input, size, bytes, input.size - 1)
+		return input[index]
 	}
 
 	val testInput = readInput("Day18_test")
