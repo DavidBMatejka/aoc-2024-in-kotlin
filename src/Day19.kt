@@ -1,57 +1,88 @@
+import kotlin.math.min
+
 fun main() {
-    val dayNr = 19
+	val dayNr = 19
 
-    fun parseInput(input: List<String>): Pair<List<String>, List<String>> {
-        val rules = input[0].split(", ")
-        val designs = input.dropWhile { it.isNotEmpty() }.drop(1)
-        return Pair(rules, designs)
-    }
+	fun parseInput(input: List<String>): Pair<List<String>, List<String>> {
+		val rules = input[0].split(", ")
+		val designs = input.dropWhile { it.isNotEmpty() }.drop(1)
+		return Pair(rules, designs)
+	}
 
-    fun part1(input: List<String>): Int {
-        val (rules, designs) = parseInput(input)
+	fun part1(input: List<String>): Int {
+		val (rules, designs) = parseInput(input)
+		val maxLength = rules.maxBy { it.length }.length
 
-        val mem = mutableMapOf<String, Boolean>()
-        fun checkTowel(pattern: String, rules: List<String>): Boolean {
-            if (pattern == "") return true
-            if (pattern in mem) return mem[pattern]!!
+		val mem = mutableMapOf<String, Boolean>()
+		fun checkDesign(design: String): Boolean {
+			if (design == "") return true
+			if (design in mem) return mem.getOrElse(design) { false }
 
-            mem[pattern] = false
-            for (w in rules) {
-                val length = w.length
-                if (length <= pattern.length) {
-                    val start = pattern.substring(0, length)
-                    val rest = pattern.substring(length)
-                    if (start == w && checkTowel(rest, rules)) {
-                        mem[pattern] = true
-                    }
-                }
-            }
-            return mem[pattern]!!
-        }
+			for (i in 0..min(maxLength, design.length)) {
+				val start = design.substring(0, i)
+				val rest = design.substring(i)
 
-        var sum = 0
-        designs.forEach { design ->
-            if (checkTowel(design, rules) == true) {
-                sum++
-            }
-        }
+				if (start !in rules) continue
 
-        return sum
-    }
+				if (checkDesign(rest)) {
+					mem[design] = true
+					return true
+				}
+			}
+
+			mem[design] = false
+			return false
+		}
+
+		var sum = 0
+		for (design in designs) {
+			if (checkDesign(design)) {
+				sum++
+			}
+		}
+		return sum
+	}
 
 
-    fun part2(input: List<String>): Int {
-        return -1
-    }
+	fun part2(input: List<String>): Long {
+		val (rules, designs) = parseInput(input)
+		val maxLength = rules.maxBy { it.length }.length
 
-    val testInput = readInput("Day${dayNr}_test")
-    val input = readInput("Day${dayNr}")
+		val mem = mutableMapOf<String, Long>()
+		fun countWays(pattern: String, rules: List<String>): Long {
+			if (pattern == "") return 1L
+			if (pattern in mem) return mem[pattern]!!
 
-//    check(part1(testInput) == 6)
-//    part1(input).println()
+			var sum = 0L
+			for (i in 0..min(maxLength, pattern.length)) {
+				val start = pattern.substring(0, i)
+				val end = pattern.substring(i)
 
-    part2(testInput)
+				if (start !in rules) continue
 
-//	check(part2(testInput) == -1)
-//    part2(input).println()
+				sum += countWays(end, rules)
+			}
+
+			mem[pattern] = sum
+			return sum
+		}
+
+		var sum = 0L
+		for (pattern in designs) {
+			sum += countWays(pattern, rules)
+		}
+
+		return sum
+	}
+
+	val testInput = readInput("Day${dayNr}_test")
+	val input = readInput("Day${dayNr}")
+
+	check(part1(testInput) == 6)
+	part1(input).println()
+
+	part2(testInput)
+
+	check(part2(testInput) == 16L)
+	part2(input).println()
 }
