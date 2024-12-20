@@ -1,8 +1,17 @@
-import java.util.PriorityQueue
 import kotlin.math.abs
 
 fun main() {
     val dayNr = 20
+
+    fun transpose(grid: MutableList<String>): MutableList<String> {
+        val transposed = MutableList(grid.size) { "" }
+        grid.forEach {
+            for (j in 0..<grid.size) {
+                transposed[j] = transposed[j] + it[j]
+            }
+        }
+        return transposed
+    }
 
     fun parseInput(input: List<String>): MutableList<CharArray> {
         val map = mutableListOf<CharArray>()
@@ -50,21 +59,23 @@ fun main() {
             if (xE != -1) end = Position(xE, y)
         }
 
-        val q = PriorityQueue<Position>(compareBy { it.steps })
+        val q = mutableListOf<Position>()
         q.add(start)
-        val costSoFar = mutableMapOf<Position, Long>().withDefault { Int.MAX_VALUE.toLong() }
+        val posToCost = mutableMapOf<Position, Long>()
+        posToCost[start] = 0
 
         while (q.isNotEmpty()) {
-            val current = q.poll()
+            val current = q.removeFirst()
 
             if (current.x == end.x && current.y == end.y) {
-                return costSoFar
+                posToCost[current] = current.steps
+                return posToCost
             }
 
             val neighbours = current.getNeighbours(map)
             neighbours.forEach { next ->
-                if (next !in costSoFar || costSoFar.getValue(next) > next.steps) {
-                    costSoFar[next] = next.steps
+                if (next !in posToCost) {
+                    posToCost[next] = next.steps
                     q.add(next)
                 }
             }
@@ -78,25 +89,54 @@ fun main() {
         val map = parseInput(input)
         val posToCost = bfs(map)
 
-        input.forEachIndexed { y, line ->
-            print("$y: ")
-            line.windowed(3).forEachIndexed { i, it ->
-                print("$it ")
-//                if (it == ".#.")
-            }
-            println()
-        }
+//        posToCost.forEach { it.println() }
 
+//        input.forEachIndexed { y, line ->
+//            print("$y: ")
+//            line.windowed(3).forEachIndexed { i, it ->
+//                print("$it ")
+////                if (it == ".#.")
+//            }
+//            println()
+//        }
+
+        val shortcuts = mutableListOf<Long>()
         input.forEachIndexed { y, line ->
             line.windowed(3).forEachIndexed { i, it ->
-                if (it == ".#.") {
+                if (it == ".#." || it == "S#." || it == ".#S" || it == "E#." || it == ".#E") {
                     val start = posToCost[Position(i, y)]!!
                     val end = posToCost[Position(i + 2, y)]!!
-                    println("shortcut at ($i,$y) with: ${abs(start - end)} less steps")
+                    // always needs to take two steps for the shortcut so -2
+                    val shortcutCost = abs(end - start) - 2
+                    shortcuts.add(shortcutCost)
+//                    println("shortcut at ($i,$y):costToStart=$start, costToEnd:$end -> ${abs(start - end) - 2} less steps")
                 }
             }
-            println()
         }
+
+        val transposed = transpose(input.toMutableList())
+        transposed.forEachIndexed { y, line ->
+            line.windowed(3).forEachIndexed { i, it ->
+                if (it == ".#." || it == "S#." || it == ".#S" || it == "E#." || it == ".#E") {
+                    // neet to flip x and y since map is transposed
+                    val start = posToCost[Position(y, i)]!!
+                    val end = posToCost[Position(y, i + 2)]!!
+                    // always needs to take two steps for the shortcut so -2
+                    val shortcutCost = abs(end - start) - 2
+                    shortcuts.add(shortcutCost)
+                }
+            }
+        }
+
+//        shortcuts.groupBy { it }
+//            .toSortedMap()
+//            .forEach {
+//            println("${it.value.size} cheats that save ${it.key} picos")
+//        }
+
+        return shortcuts.filter {
+            it >= 100
+        }.size
 
         return -1
     }
@@ -109,8 +149,8 @@ fun main() {
     val testInput = readInput("Day${dayNr}_test")
     val input = readInput("Day${dayNr}")
 
-    check(part1(testInput) == -1)
-//    part1(input).println()
+    check(part1(testInput) == 0)
+    part1(input).println()
 
 	check(part2(testInput) == -1)
     part2(input).println()
