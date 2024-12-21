@@ -49,10 +49,10 @@ fun main() {
 		var char: Char = 'z'
 		var path: String = ""
 
-		fun getNeighbours(pad: List<String>): List<Pos> {
+		fun getNeighbours(pad: List<String>, perm: Map<Char, Pair<Int, Int>>): List<Pos> {
 			val neighbours = mutableListOf<Pos>()
 
-			dirs.forEach {
+			perm.forEach {
 				val (dx, dy) = it.value
 				val next = Pos(x + dx, y + dy)
 				if (next.x in pad[0].indices && next.y in pad.indices) {
@@ -70,7 +70,7 @@ fun main() {
 	}
 
 
-	fun bfs(pad: List<String>, start: Pos, end: Char): Pos {
+	fun bfs(pad: List<String>, start: Pos, end: Char, perm: Map<Char, Pair<Int, Int>>): Pos {
 		val q = mutableListOf<Pos>()
 		q.add(start)
 		val visited = mutableSetOf<Pos>()
@@ -83,7 +83,7 @@ fun main() {
 			}
 
 			visited.add(curr)
-			for (neighbour in curr.getNeighbours(pad)) {
+			for (neighbour in curr.getNeighbours(pad, perm)) {
 				if (neighbour !in visited) {
 					visited.add(neighbour)
 					q.add(neighbour)
@@ -95,7 +95,7 @@ fun main() {
 		return Pos(-1, -1)
 	}
 
-	fun getSequence(pad: List<String>, code: String): String {
+	fun getSequence(pad: List<String>, code: String): List<String> {
 		val start = if (pad == numpad) {
 			Pos(2, 3)
 		} else {
@@ -104,30 +104,37 @@ fun main() {
 
 		val perms = dirs.toList().permutations().map { it.toMap() }
 
-		var pos = bfs(pad, start, code[0])
-		var sequence = pos.path + "A"
-		pos.path = ""
-		for (i in code.indices) {
-			if (i == 0) continue
-			pos = bfs(pad, pos, code[i])
-			sequence += pos.path + "A"
+		val sequences = mutableListOf<String>()
+		perms.forEach { perm ->
+			var pos = bfs(pad, start, code[0], perm)
+			var sequence = pos.path + "A"
 			pos.path = ""
+			for (i in code.indices) {
+				if (i == 0) continue
+				pos = bfs(pad, pos, code[i], perm)
+				sequence += pos.path + "A"
+				pos.path = ""
+			}
+			sequences.add(sequence)
 		}
-
-//		sequence.println()
-		return sequence
+		return sequences
 	}
 
 	fun part1(input: List<String>): Int {
 		var sum = 0
 		for (line in input) {
-			val length = getSequence(dirpad, getSequence(dirpad, getSequence(numpad, line))).length
+			val length = buildList {
+				getSequence(numpad, line).forEach {
+					for (s in (getSequence(dirpad, it))) {
+						add(getSequence(dirpad, s))
+					}
+				}
+			}.flatten().minBy { it.length }.length
+
 			val num = line.dropLast(1).toInt()
-			println("$length $num")
 			sum += num * length
 		}
 
-		sum.println()
 		return sum
 	}
 
@@ -140,7 +147,7 @@ fun main() {
 	val input = readInput("Day${dayNr}")
 
 	check(part1(testInput) == 126384)
-//	part1(input).println()
+	part1(input).println()
 //
 //	check(part2(testInput) == -1)
 //	part2(input).println()
