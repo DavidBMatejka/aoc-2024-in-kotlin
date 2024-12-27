@@ -24,12 +24,7 @@ fun main() {
 
 		fun insideMap(map: MutableList<MutableList<Char>>): Boolean {
 			val (dx, dy) = directionMap[direction]!!
-			if (x + dx >= map[0].size) return false
-			if (y + dy >= map.size) return false
-			if (x + dx < 0) return false
-			if (y + dy < 0) return false
-
-			return true
+			return ((x + dx) in map[0].indices && (y + dy) in map.indices)
 		}
 	}
 
