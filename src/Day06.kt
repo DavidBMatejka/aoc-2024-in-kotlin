@@ -6,7 +6,7 @@ fun main() {
 		3 to Pair(-1, 0),
 	)
 
-	data class Guard(var x: Int, var y: Int, var direction: Int) {
+	data class GuardPos(var x: Int, var y: Int, var direction: Int) {
 		fun turn() {
 			direction++
 			if (direction == 4) direction = 0
@@ -31,19 +31,19 @@ fun main() {
 	fun part1(input: List<String>): Pair<Int, MutableSet<Pair<Int, Int>>> {
 		val map = mutableListOf<MutableList<Char>>()
 
-		var guard = Guard(0, 0, -1)
+		var guardPos = GuardPos(0, 0, -1)
 		input.forEachIndexed { y, line ->
 			map.add(line.toMutableList())
 			val x = line.indexOf("^")
 			if (x != -1) {
-				guard = Guard(x, y, 0)
+				guardPos = GuardPos(x, y, 0)
 			}
 		}
 
-		val visited = mutableSetOf(Pair(guard.x, guard.y))
-		while (guard.insideMap(map)) {
-			guard.move(map)
-			visited.add(Pair(guard.x, guard.y))
+		val visited = mutableSetOf(Pair(guardPos.x, guardPos.y))
+		while (guardPos.insideMap(map)) {
+			guardPos.move(map)
+			visited.add(Pair(guardPos.x, guardPos.y))
 		}
 
 		return Pair(visited.size, visited)
@@ -58,7 +58,8 @@ fun main() {
 		return map
 	}
 
-	fun part2(input: List<String>, visited: MutableSet<Pair<Int, Int>>): Int {
+	fun part2(input: List<String>): Int {
+		val visited = part1(input).second
 		var start = Pair(-1, -1)
 		input.forEachIndexed { y, line ->
 			val x = line.indexOf("^")
@@ -72,23 +73,16 @@ fun main() {
 		for (pos in visited) {
 			val copy = getMap(input)
 			copy[pos.second][pos.first] = '#'
-			val guard = Guard(start.first, start.second, 0)
+			val guardPos = GuardPos(start.first, start.second, 0)
 
-			val potentialLoop = mutableSetOf(Pair(guard.x, guard.y))
-			var alreadyVisited = 0
-			while (guard.insideMap(copy)) {
-				guard.move(copy)
-				val currentPos = Pair(guard.x, guard.y)
-				if (currentPos in potentialLoop) {
-					alreadyVisited++
-				} else {
-					alreadyVisited = 0
-				}
-				if (alreadyVisited > 200) {
+			val potentialLoop = mutableSetOf(guardPos.copy())
+			while (guardPos.insideMap(copy)) {
+				guardPos.move(copy)
+				if (guardPos in potentialLoop) {
 					loopCount++
 					break
 				}
-				potentialLoop.add(currentPos)
+				potentialLoop.add(guardPos.copy())
 			}
 		}
 
@@ -96,12 +90,11 @@ fun main() {
 	}
 
 	val testInput = readInput("Day06_test")
-	val (testErg, testVisited) = part1(testInput)
-	check(testErg == 41)
-	check(part2(testInput, testVisited) == 6)
-
 	val input = readInput("Day06")
-	val (erg, visited) = part1(input)
-	erg.println()
-	part2(input, visited).println()
+
+	check(part1(testInput).first == 41)
+	part1(input).first.println()
+
+	check(part2(testInput) == 6)
+	part2(input).println()
 }
